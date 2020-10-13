@@ -30,13 +30,43 @@ JOIN menus ON restaurants.id = menus.restaurant_id
 JOIN items ON menus.id = items.menu_id
 WHERE restaurants.id = 1;
 
--- COUNT menu items & GROUP BY menu title (header as "count")
+-- COUNT menu items & GROUP BY menu title (header as "itemCount")
 
-SELECT restaurants.name, menus.title, COUNT(items.name) as count
+SELECT restaurants.name, menus.title, COUNT(items.name) as itemCount
 FROM restaurants
 JOIN menus ON restaurants.id = menus.restaurant_id
 JOIN items ON menus.id = items.menu_id
 GROUP BY menus.title;
+
+-- COUNT menus & GROUP BY restaurant name 
+
+SELECT restaurants.name, COUNT(menus.title) as menuCount
+FROM restaurants
+JOIN menus ON restaurants.id = menus.restaurant_id
+GROUP BY restaurants.name;
+
+-- COUNT menu items & GROUP BY restaurant name 
+
+SELECT restaurants.name, COUNT(items.name) as itemCount
+FROM restaurants
+JOIN menus ON restaurants.id = menus.restaurant_id
+JOIN items ON menus.id = items.menu_id
+GROUP BY restaurants.name;
+
+-- SUM the price of all the items on each menu 
+
+SELECT menus.title, SUM(items.price) as totalPrice
+FROM menus
+JOIN items ON menus.id = items.menu_id
+GROUP BY menus.title;
+
+-- SELECT an item by id and display the restaurant name it belongs to next to it 
+
+SELECT items.name as item, restaurants.name as restaurant
+FROM restaurants
+JOIN menus ON restaurants.id = menus.restaurant_id
+JOIN items ON menus.id = items.menu_id
+GROUP BY items.name;
 
 ------- Random queries ------- 
 
