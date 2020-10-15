@@ -20,16 +20,30 @@ class Restaurant {
         this.id = data.id
         this.name = data.name
         this.imageUrl = data.imageUrl
+        this.menus = []
         if(data.id){
-            return Promise.resolve(this)
+            //console.log(this)
+         return new Promise((resolve, reject) => {
+                const restaurant = this;// "this" changes into a Statement when it hits db.all, therefore we must define that we are referring to the "this" from before
+                db.all('SELECT * FROM menus WHERE restaurant_id=?;', [restaurant.id], async function(err, rows){
+                    restaurant.menus = await Promise.all(rows.map(row => new Menu(row)))
+                    resolve(restaurant)
+                })
+            })
+            // return Promise.resolve(this)
         } else {
             return new Promise((resolve, reject) => {
-                db.run('INSERT INTO restaurants(name, imageUrl) VALUES(?,?);', [this.name, this.imageUrl], function(err) {
-                    this.id = this.lastID
-                    resolve(this)
+                const restaurant = this;
+                db.run('INSERT INTO restaurants(name, imageUrl) VALUES(?,?);', [restaurant.name, restaurant.imageUrl], function(err) {
+                    restaurant.id = this.lastID // "this" here relates to the database 
+                    resolve(restaurant)
                 })
             })
         }
+    }
+    async addMenu(title){
+        const menu = await new Menu({title: title, restaurant_id: this.id})
+        this.menus.push(menu)
     }
 }
 
@@ -48,16 +62,29 @@ class Menu {
     constructor(data){
         this.id = data.id 
         this.title = data.title 
+        this.items = []
         if(data.id){
-            return Promise.resolve(this)
+            return new Promise((resolve, reject) => {
+                const menu = this;
+                db.all('SELECT * FROM items WHERE menu_id=?;', [this.id], async function(err, rows){
+                    menu.items = await Promise.all(rows.map(row => new Item(row)))
+                    resolve(menu)
+                })
+            })
+            // return Promise.resolve(this)
         } else {
             return new Promise((resolve, reject) => {
-                db.run('INSERT INTO menus(title, restaurant_id) VALUES(?,?);', [this.title, this.lastID], function(err){
-                    this.id = this.lastID
-                    resolve(this)
+                const menu = this;
+                db.run('INSERT INTO menus(title, restaurant_id) VALUES(?,?);', [menu.title, menu.restaurant_id], function(err){
+                    menu.id = this.lastID
+                    resolve(menu)
                 })
             })
         }
+    }
+    async addItem(name, price){
+        const item = await new Item({name: name, price: price, menu_id: this.id})
+        this.items.push(item)
     }
 }
 
@@ -75,15 +102,16 @@ class Item {
     }
     constructor(data){
         this.id = data.id 
-        this.title = data.title 
+        this.name = data.name
         this.price = data.price
         if(data.id){
             return Promise.resolve(this)
         } else {
             return new Promise((resolve, reject) => {
-                db.run('INSERT INTO items(name, price, menu_id) VALUES(?,?,?);', [this.name, this.price, this.lastID], function(err){
-                    this.id = this.lastID
-                    resolve(this)
+                const item = this;
+                db.run('INSERT INTO items(name, price, menu_id) VALUES(?,?,?);', [item.name, item.price, item.menu_id], function(err){
+                    item.id = this.lastID
+                    resolve(item)
                 })
             })
         }
